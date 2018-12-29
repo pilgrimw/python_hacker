@@ -1,0 +1,66 @@
+import sys
+import re
+import requests
+list=[]
+#通过谷歌黑客收集子域名
+head = {'User-Agent': \
+            'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36'}
+key=input("请输入域名(eg:baidu.com)：")
+for i in range(0,200,10):
+    url="https://cn.bing.com/search?q=site:"+key+"&qs=n&sp=-1&pq=site%"+key+"&sc=0-14&sk=&cvid=DCA86A5693EE409F8C3F672D2A8C203D&first=%s&FORM=PERE" %i
+    #print(url)
+    response=requests.get(url,headers=head).content
+    #content以字节流形式打印,编码不正确，需要用utf-8编码
+    sub=re.findall('href="(http://|https://)(.*?)\/',response.decode('utf-8'))
+    #print(sub)
+    for page in range(0,len(sub)):
+       host=(sub[page][1])
+       #print(host)
+       #取出sub列表的的每个值，判断在不在list列表中，不在即添加（去重功能）
+       if host not in list:
+           list.append('http://'+host)
+           #print(len(list))
+#最后输出所有值
+#for a in range(0,len(list)):
+ #   print(list[a])
+    #for a in range(0, len(list)):
+    #print(a)
+
+#爆破
+def geturl(key):
+    #需在同目录下存在字典文件domian.txt
+    zidian = open("domian.txt",'r')
+    for i in zidian:
+        url='http://'+i.strip()+'.'+key
+        #print(url)
+        header = {
+            'Connection': 'keep-alive',
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache',
+            'Upgrade-Insecure-Requests': '1',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'DNT': '1',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
+        }
+        try:
+            http_connent = requests.get(url, timeout=1, headers=header)
+            http_code = http_connent.status_code
+            if (http_code == 200) and url not in list:
+                list.append(url)
+        except requests.RequestException as e:
+            pass
+ #   for a in range(0, len(list)):
+ #       print(list[a])
+
+geturl(key)
+list2=[]
+for i in list:
+    if not i in list2:
+        list2.append(i)
+for a in range(0, len(list2)):
+    print(list2[a])
+
+
+
