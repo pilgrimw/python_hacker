@@ -28,7 +28,7 @@ for i in range(0,200,10):
 
 #爆破
 def geturl(key):
-    #需在同目录下存在字典文件domian.txt
+    #需在同目录下存在字典文件domian.txt,这里用的是子域名挖掘机的字典
     zidian = open("domian.txt",'r')
     for i in zidian:
         url='http://'+i.strip()+'.'+key
