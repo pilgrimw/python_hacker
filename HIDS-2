@@ -1,0 +1,111 @@
+#!/usr/bin/python3
+# -*- coding:utf-8 -*-#
+import os
+import re
+def info():
+    print("基础版本信息")
+    print("------------------------------------")
+    version=os.system("uname a")
+    print("logging users")
+    print("-------------------------------------")
+    logging_users=os.system("w")
+    print("系统运行时间")
+    print("-------------------------------------")
+    os_time=os.system("uptime")
+#网卡信息
+    network=os.system('ip link show | grep PROMISC')
+#路由信息
+    route=os.system("route -n")
+#arp信息
+    arp=os.system("arp -a -n")
+#显示当前时间
+    time=os.system("timedatectl")
+#挂载信息
+    mount=os.system("mount")
+#目前登录信息
+    logging_user=os.system("w")
+#用户目前和过去的登录信息，对应/var/log/wtmp文件，last -f /var/log/wtmp
+    loggied_user=os.system("last")
+#本地系统用户最后一次登录的信息，对应/var/log/utmp文件
+    logging_user_info=os.system("lastlog")
+#用户错误登录的登录列表，对应/var/log/btmp文件
+    logging_user_info=os.system("lastb")
+#这里可以做的事情：监控paasswd是否新增帐号；lastlog中系统用户从未登录过的用户是否登录；last登录用户和ip是否是不常用用户和ip，以及ip是否属于公网ip，lastb登录错误的ip和用户是否在last登录成功的列表中
+
+ #具有shell登录环境的用户cat /etc/rc.local
+    #not_nologin_users=os.system("awk -F: '{if($7!~"nologin" && $7!~"shutdown" && $7!~"halt" && $7!~"false" && $7!~"sync") print}' /etc/passwd")
+#sudo授权信息
+    sudo = os.system("cat /etc/sudoers | grep -Ev '^$|#'")
+#root用户登录时的源ip地址
+    root_sshknow_hosts=os.system("awk '{print $1}' /root/.ssh/known_hosts")
+#其他用户登录时源ip地址
+    #for file in os.system("ls /home"):system的结果为0，1等结果数值，无法取值进行循环
+    os.system("ls /home > 1.txt")
+    f = open("1.txt", "r")
+    for file in f.readlines():
+        file = file.strip()
+        path = "/home/" + file + "/.ssh/known_hosts"
+        # print(path)
+        a = os.path.exists(path)
+        # print(a)
+        try:
+            if a == True:
+                os.system("awk  '{print $1}' %s" % path)
+        except FileNotFoundError:
+            pass
+    f.close()
+
+#/etc/rc.local 脚本内容，默认内容为：touch /var/lock/subsys/local
+    auto_rclocal=os.system(' | grep -Ev "^#$|^#"')
+#crontab任务计划，crontab -l 或者 crontab -c /var/spool/cron/ -l，/etc/crontab为系统执行计划，/var/spool/cron/为以帐号来区分每个用户的执行任务
+    crontab=os.system('crontab -l')
+#cron.d 为系统级任务计划，crontab -l无法显示
+    crond=os.system(' find /etc/cron.d/ |xargs ./busybox grep -Ev "^#"')
+#用户自定义启动项
+    services=os.system('chkconfig --list')
+    system_servers=os.system('systemctl list-unit-files | grep enabled | grep -Ev "ups.path|abrt-ccpp.service|abrt-oops.service|abrt-vmcore.service|abrt-xorg.service|abrtd.service|accounts-daemon.service|atd.service|auditd.service|avahi-daemon.service|bluetooth.service|chronyd.service|crond.service|cups.service|dbus-org.bluez.service|dbus-org.fedoraproject.FirewallD1.service|dbus-org.freedesktop.Avahi.service|dbus-org.freedesktop.ModemManager1.service|dbus-org.freedesktop.NetworkManager.service|dbus-org.freedesktop.nm-dispatcher.service|display-manager.service|dmraid-activation.service|firewalld.service|gdm.service|getty@.service|gitlab-runsvdir.service|irqbalance.service|iscsi.service|ksm.service|ksmtuned.service|libstoragemgmt.service|libvirtd.service|lvm2-monitor.service|mdmonitor.service|microcode.service|ModemManager.service|multipathd.service|netcf-transaction.service|NetworkManager-dispatcher.service|NetworkManager-wait-online.service|NetworkManager.service|postfix.service|rngd.service|rsyslog.service|rtkit-daemon.service|smartd.service|spice-vdagentd.service|sshd.service|sysstat.service|systemd-readahead-collect.service|systemd-readahead-drop.service|systemd-readahead-replay.service|tuned.service|vmtoolsd.service|avahi-daemon.socket|cups.socket|dm-event.socket|iscsid.socket|iscsiuio.socket|lvm2-lvmetad.socket|lvm2-lvmpolld.socket|rpcbind.socket|default.target|graphical.target|nfs-client.target|remote-fs.target"')
+#内核模块运行时的文件信息
+    kernel_file=os.system("ls -alt /sys/module")
+#内核模块
+    lsmod=os.system('lsmod | grep -Ev "Module|nfnetlink_queue|nfnetlink_log|nfnetlink|bluetooth|rfkill|fuse|xt_CHECKSUM|ipt_MASQUERADE|nf_nat_masquerade_ipv4|tun|binfmt_misc|ip6t_rpfilter|ip6t_REJECT|ipt_REJECT|xt_conntrack|ebtable_nat|ebtable_broute|bridge|stp|llc|ebtable_filter|ebtables|ip6table_nat|nf_conntrack_ipv6|nf_defrag_ipv6|nf_nat_ipv6|ip6table_mangle|ip6table_security|ip6table_raw|ip6table_filter|ip6_tables|iptable_na|nf_conntrack_ipv4|nf_defrag_ipv4|nf_nat_ipv4|nf_nat|nf_conntrack|iptable_mangle|iptable_security|iptable_raw|iptable_filter|dm_mirror|dm_region_hash|dm_log|dm_mod|intel_powerclamp|coretemp|kvm_intel|kvm|crc32_pclmul|ghash_clmulni_intel|aesni_intel|lrw|gf128mul|glue_helper|ablk_helper|cryptd|iTCO_wdt|i7core_edac|iTCO_vendor_support|lpc_ich|edac_core|sg|mfd_core|ioatdma|ipmi_devintf|shpchp|ipmi_ssif|dcdbas|pcspkr|dca|ipmi_si|ipmi_msghandler|acpi_power_meter|nfsd|auth_rpcgss|nfs_acl|lockd|grace|sunrpc|ip_tables|xfs|libcrc32c|sd_mod|crc_t10dif|crct10dif_generic|mgag200|syscopyarea|sysfillrect|sysimgblt|i2c_algo_bit|drm_kms_helper|ttm|crct10dif_pclmul|crct10dif_common|crc32c_intel|drm|serio_raw|megaraid_sas|i2c_core|bnx2|snd_seq_midi|snd_ens1371|snd_rawmidi|snd_ac97_codec|ac97_bus|snd_seq|ppdev|soundcore|vmw_balloon|parport_pc|parport|vmw_vmci|i2c_piix4|sr_mod|ata_generic|pata_acpi|vmwgfx|ahci|libahci|ata_piix|mptspi|scsi_transport_spi|mptscsih|mptbase|libata|e1000|snd_page_alloc|xt_state|vmware_balloon|ext4|mbcache|jbd2"')
+#进程信息
+    pstreew=os.system('ps auxfw')
+#网络连接信息
+    network_listen=os.system('netstat -antup')
+#lsof网络连接信息，1.netstat无权限控制，lsof有权限控制，只能看到本用户2.losf能看到pid和用户，可以找到哪个进程占用了这个端口
+    lsof_listen=os.system('lsof -nPi | grep -v "127.0.0.1" |grep -v "::1" |sort -u')
+#网络输出sockets信息
+    network_connecttion=os.system("netstat -plantux")
+#防火墙信息
+    iptables=os.system("iptables -L -nv")
+#进程文件路径https://blog.csdn.net/xuelin1036/article/details/41794487，https://www.cnblogs.com/aofo/p/6151266.html
+#sys/fs用于描述系统中的所有文件系统
+#排除/proc/sys/fs搜索所有exe表示具体的执行路径
+    proc_exe=os.system("find /proc -path '/proc/sys/fs' -prune -o -print |xargs  ls -al | grep 'exe ->' | sort -u")
+#rpm包信息
+    rpm=os.system("rpm -aV")
+#sshx相关rpm检测
+    ssh_rpm=os.system("rpm -qa|grep ssh|xargs rpm -qV")
+
+#日志获取
+#history命令历史记录
+    history=os.system("history")
+#其他用户历史记录，无需判断该用户是否有shell，如apche用户无history文件，若该用户执行了命令，可从audit日志中发现
+    os.system("ls /home > 1.txt")
+    f1 = open("1.txt", "r")
+    for file in f.readlines():
+     file = file.strip()
+     path = "/home/" + file + "/.bash_history"
+     a = os.path.exists(path)
+     try:
+        if a == True:
+            os.system("cat %s" % path)
+     except FileNotFoundError:
+        pass
+    f1.close()
+
+#var相关log日志获取，audit日志，btmp日志，wtmp日志，secure日志，corn日志，lastlog日志
+    os.system("tar -zcf var_log.tar.gz  /var/log/audit \/var/log/btmp* /var/log/wtmp* /var/log/secure* /var/log/cron* \/var/log/lastlog")
+
+if __name__ == "__main__":
+    info()
